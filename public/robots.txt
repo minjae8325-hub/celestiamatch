@@ -1,0 +1,6 @@
+# Static robots.txt (Next.js also generates /robots from app/robots.ts — either works).
+User-agent: *
+Allow: /
+Disallow: /result
+
+Sitemap: https://celestiamatch.com/sitemap.xml

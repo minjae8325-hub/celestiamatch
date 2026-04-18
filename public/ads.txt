@@ -1,0 +1,3 @@
+# ads.txt — REQUIRED for AdSense. Replace ca-pub-XXXXXXXXXXXXXXXX with your actual publisher ID.
+# Once deployed at https://your-domain.com/ads.txt, Google will verify within 24-48h.
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
