@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Deep mystical purples
+        // Deep wine / boudoir reds
         night: {
-          950: '#08051a',
-          900: '#0f0823',
-          800: '#170d35',
-          700: '#201248',
-          600: '#2d1a66',
+          950: '#140208',
+          900: '#1f0612',
+          800: '#2d0a1f',
+          700: '#4a0f33',
+          600: '#6b1a4a',
         },
         // Accent gold
         gold: {
@@ -24,19 +24,19 @@ const config: Config = {
           600: '#caa23f',
           700: '#a6822a',
         },
-        // Soft starlight / mist
+        // Blush starlight / mist
         mist: {
-          100: '#f4efff',
-          200: '#e4dbff',
-          300: '#c8b9ee',
-          400: '#9b87c9',
-          500: '#6c5a9c',
+          100: '#fff0f5',
+          200: '#ffd9e3',
+          300: '#f0b8cc',
+          400: '#c98aa0',
+          500: '#8c4e67',
         },
-        // Rose / ember for love accents
+        // Hot rose / ember for love accents
         ember: {
-          400: '#ffa5b8',
-          500: '#ff6f8d',
-          600: '#d94a6b',
+          400: '#ffb0c3',
+          500: '#ff5c82',
+          600: '#e02858',
         },
       },
       fontFamily: {
@@ -45,11 +45,11 @@ const config: Config = {
       },
       boxShadow: {
         glow: '0 0 40px -10px rgba(245, 216, 122, 0.55)',
-        mystic: '0 25px 80px -20px rgba(109, 80, 200, 0.55)',
+        mystic: '0 25px 80px -20px rgba(224, 40, 88, 0.5)',
       },
       backgroundImage: {
         'gradient-mystic':
-          'radial-gradient(ellipse at top, #2d1a66 0%, #170d35 40%, #08051a 100%)',
+          'radial-gradient(ellipse at top, #6b1a4a 0%, #2d0a1f 40%, #140208 100%)',
         'gradient-gold':
           'linear-gradient(135deg, #f5d87a 0%, #caa23f 50%, #a6822a 100%)',
       },
