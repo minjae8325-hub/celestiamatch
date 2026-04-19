@@ -477,16 +477,64 @@ function NameStep({ heart, title, subtitle, value, onChange }: {
 function BirthDateStep({ heart, title, value, onChange }: {
   heart: string; title: string; value: string; onChange: (v: string) => void;
 }) {
+  const [y, m, d] = (value || '').split('-');
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
+  const months = [
+    { v: '01', n: 'January' }, { v: '02', n: 'February' }, { v: '03', n: 'March' },
+    { v: '04', n: 'April' }, { v: '05', n: 'May' }, { v: '06', n: 'June' },
+    { v: '07', n: 'July' }, { v: '08', n: 'August' }, { v: '09', n: 'September' },
+    { v: '10', n: 'October' }, { v: '11', n: 'November' }, { v: '12', n: 'December' },
+  ];
+  const daysInMonth = (yy: string, mm: string) => {
+    const yi = parseInt(yy, 10); const mi = parseInt(mm, 10);
+    if (!yi || !mi) return 31;
+    return new Date(yi, mi, 0).getDate();
+  };
+  const days = Array.from({ length: daysInMonth(y, m) }, (_, i) => String(i + 1).padStart(2, '0'));
+  const update = (ny: string, nm: string, nd: string) => {
+    if (ny && nm && nd) {
+      const maxD = daysInMonth(ny, nm);
+      const clampedD = Math.min(parseInt(nd, 10) || 1, maxD);
+      onChange(`${ny}-${nm}-${String(clampedD).padStart(2, '0')}`);
+    } else {
+      onChange('');
+    }
+  };
+  const selectClass = "w-full px-3 py-4 rounded-2xl bg-night-900/70 border border-mist-500/20 focus:border-gold-400 focus:outline-none text-mist-100 appearance-none";
   return (
     <div>
       <HeartBadge n={heart} />
       <h2 className="font-display text-2xl md:text-3xl text-center mb-5">{title}</h2>
-      <input
-        type="date"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full px-4 py-4 rounded-2xl bg-night-900/70 border border-mist-500/20 focus:border-gold-400 focus:outline-none text-mist-100"
-      />
+      <div className="grid grid-cols-3 gap-2">
+        <select
+          value={y || ''}
+          onChange={e => update(e.target.value, m || '', d || '')}
+          className={selectClass}
+          aria-label="Year"
+        >
+          <option value="">Year</option>
+          {years.map(yr => <option key={yr} value={yr}>{yr}</option>)}
+        </select>
+        <select
+          value={m || ''}
+          onChange={e => update(y || '', e.target.value, d || '')}
+          className={selectClass}
+          aria-label="Month"
+        >
+          <option value="">Month</option>
+          {months.map(mo => <option key={mo.v} value={mo.v}>{mo.n}</option>)}
+        </select>
+        <select
+          value={d || ''}
+          onChange={e => update(y || '', m || '', e.target.value)}
+          className={selectClass}
+          aria-label="Day"
+        >
+          <option value="">Day</option>
+          {days.map(dy => <option key={dy} value={dy}>{parseInt(dy, 10)}</option>)}
+        </select>
+      </div>
       <p className="mt-3 text-xs text-mist-400 text-center">
         Your sun sign is read from this date.
       </p>
@@ -497,25 +545,62 @@ function BirthDateStep({ heart, title, value, onChange }: {
 function BirthTimeStep({ heart, title, value, onChange }: {
   heart: string; title: string; value: string; onChange: (v: string) => void;
 }) {
-  const [time, setTime] = useState(value === 'unknown' ? '' : value);
-  useEffect(() => { setTime(value === 'unknown' ? '' : value); }, [value]);
+  const isUnknown = value === 'unknown';
+  const [h24, mm] = (!isUnknown && value ? value : '').split(':');
+  const h24num = parseInt(h24, 10);
+  const period: 'AM' | 'PM' = isNaN(h24num) ? 'AM' : (h24num >= 12 ? 'PM' : 'AM');
+  const hour12 = isNaN(h24num) ? '' : String(((h24num + 11) % 12) + 1);
+  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+  const update = (hh12: string, min: string, per: 'AM' | 'PM') => {
+    if (hh12 && min) {
+      let h = parseInt(hh12, 10) % 12;
+      if (per === 'PM') h += 12;
+      onChange(`${String(h).padStart(2, '0')}:${min}`);
+    } else {
+      onChange('');
+    }
+  };
   const markUnknown = () => onChange('unknown');
-  const useTime = () => onChange(time);
+  const selectClass = "w-full px-3 py-4 rounded-2xl bg-night-900/70 border border-mist-500/20 focus:border-gold-400 focus:outline-none text-mist-100 appearance-none";
   return (
     <div>
       <HeartBadge n={heart} />
       <h2 className="font-display text-2xl md:text-3xl text-center mb-5">{title}</h2>
-      <input
-        type="time"
-        value={time}
-        onChange={e => { setTime(e.target.value); onChange(e.target.value); }}
-        className="w-full px-4 py-4 rounded-2xl bg-night-900/70 border border-mist-500/20 focus:border-gold-400 focus:outline-none text-mist-100"
-      />
+      <div className="grid grid-cols-3 gap-2">
+        <select
+          value={isUnknown ? '' : hour12}
+          onChange={e => update(e.target.value, mm || '', period)}
+          className={selectClass}
+          aria-label="Hour"
+        >
+          <option value="">Hour</option>
+          {hours.map(h => <option key={h} value={h}>{h}</option>)}
+        </select>
+        <select
+          value={isUnknown ? '' : (mm || '')}
+          onChange={e => update(hour12 || '', e.target.value, period)}
+          className={selectClass}
+          aria-label="Minute"
+        >
+          <option value="">Min</option>
+          {minutes.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <select
+          value={isUnknown ? '' : period}
+          onChange={e => update(hour12 || '', mm || '', e.target.value as 'AM' | 'PM')}
+          className={selectClass}
+          aria-label="AM or PM"
+        >
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+      </div>
       <button
         type="button"
         onClick={markUnknown}
         className={`mt-3 w-full px-4 py-3 rounded-2xl border transition text-sm ${
-          value === 'unknown'
+          isUnknown
             ? 'border-gold-400 text-gold-400'
             : 'border-mist-500/20 text-mist-300 hover:border-gold-400 hover:text-gold-400'
         }`}
