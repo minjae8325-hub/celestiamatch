@@ -477,7 +477,14 @@ function NameStep({ heart, title, subtitle, value, onChange }: {
 function BirthDateStep({ heart, title, value, onChange }: {
   heart: string; title: string; value: string; onChange: (v: string) => void;
 }) {
-  const [y, m, d] = (value || '').split('-');
+  const [yInit, mInit, dInit] = (value || '').split('-');
+  const [y, setY] = useState(yInit || '');
+  const [m, setM] = useState(mInit || '');
+  const [d, setD] = useState(dInit || '');
+  useEffect(() => {
+    const [ny, nm, nd] = (value || '').split('-');
+    setY(ny || ''); setM(nm || ''); setD(nd || '');
+  }, [value]);
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
   const months = [
@@ -492,7 +499,8 @@ function BirthDateStep({ heart, title, value, onChange }: {
     return new Date(yi, mi, 0).getDate();
   };
   const days = Array.from({ length: daysInMonth(y, m) }, (_, i) => String(i + 1).padStart(2, '0'));
-  const update = (ny: string, nm: string, nd: string) => {
+  const commit = (ny: string, nm: string, nd: string) => {
+    setY(ny); setM(nm); setD(nd);
     if (ny && nm && nd) {
       const maxD = daysInMonth(ny, nm);
       const clampedD = Math.min(parseInt(nd, 10) || 1, maxD);
@@ -508,8 +516,8 @@ function BirthDateStep({ heart, title, value, onChange }: {
       <h2 className="font-display text-2xl md:text-3xl text-center mb-5">{title}</h2>
       <div className="grid grid-cols-3 gap-2">
         <select
-          value={y || ''}
-          onChange={e => update(e.target.value, m || '', d || '')}
+          value={y}
+          onChange={e => commit(e.target.value, m, d)}
           className={selectClass}
           aria-label="Year"
         >
@@ -517,8 +525,8 @@ function BirthDateStep({ heart, title, value, onChange }: {
           {years.map(yr => <option key={yr} value={yr}>{yr}</option>)}
         </select>
         <select
-          value={m || ''}
-          onChange={e => update(y || '', e.target.value, d || '')}
+          value={m}
+          onChange={e => commit(y, e.target.value, d)}
           className={selectClass}
           aria-label="Month"
         >
@@ -526,8 +534,8 @@ function BirthDateStep({ heart, title, value, onChange }: {
           {months.map(mo => <option key={mo.v} value={mo.v}>{mo.n}</option>)}
         </select>
         <select
-          value={d || ''}
-          onChange={e => update(y || '', m || '', e.target.value)}
+          value={d}
+          onChange={e => commit(y, m, e.target.value)}
           className={selectClass}
           aria-label="Day"
         >
@@ -546,17 +554,33 @@ function BirthTimeStep({ heart, title, value, onChange }: {
   heart: string; title: string; value: string; onChange: (v: string) => void;
 }) {
   const isUnknown = value === 'unknown';
-  const [h24, mm] = (!isUnknown && value ? value : '').split(':');
-  const h24num = parseInt(h24, 10);
-  const period: 'AM' | 'PM' = isNaN(h24num) ? 'AM' : (h24num >= 12 ? 'PM' : 'AM');
-  const hour12 = isNaN(h24num) ? '' : String(((h24num + 11) % 12) + 1);
+  const parse = (v: string) => {
+    if (v === 'unknown' || !v) return { h: '', m: '', p: 'AM' as 'AM' | 'PM' };
+    const [hh, mm] = v.split(':');
+    const hnum = parseInt(hh, 10);
+    if (isNaN(hnum)) return { h: '', m: mm || '', p: 'AM' as 'AM' | 'PM' };
+    return {
+      h: String(((hnum + 11) % 12) + 1),
+      m: mm || '',
+      p: (hnum >= 12 ? 'PM' : 'AM') as 'AM' | 'PM',
+    };
+  };
+  const init = parse(value);
+  const [hour12, setHour12] = useState(init.h);
+  const [min, setMin] = useState(init.m);
+  const [period, setPeriod] = useState<'AM' | 'PM'>(init.p);
+  useEffect(() => {
+    const p = parse(value);
+    setHour12(p.h); setMin(p.m); setPeriod(p.p);
+  }, [value]);
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-  const update = (hh12: string, min: string, per: 'AM' | 'PM') => {
-    if (hh12 && min) {
-      let h = parseInt(hh12, 10) % 12;
-      if (per === 'PM') h += 12;
-      onChange(`${String(h).padStart(2, '0')}:${min}`);
+  const commit = (nh: string, nm: string, np: 'AM' | 'PM') => {
+    setHour12(nh); setMin(nm); setPeriod(np);
+    if (nh && nm) {
+      let h = parseInt(nh, 10) % 12;
+      if (np === 'PM') h += 12;
+      onChange(`${String(h).padStart(2, '0')}:${nm}`);
     } else {
       onChange('');
     }
@@ -570,7 +594,7 @@ function BirthTimeStep({ heart, title, value, onChange }: {
       <div className="grid grid-cols-3 gap-2">
         <select
           value={isUnknown ? '' : hour12}
-          onChange={e => update(e.target.value, mm || '', period)}
+          onChange={e => commit(e.target.value, min, period)}
           className={selectClass}
           aria-label="Hour"
         >
@@ -578,17 +602,17 @@ function BirthTimeStep({ heart, title, value, onChange }: {
           {hours.map(h => <option key={h} value={h}>{h}</option>)}
         </select>
         <select
-          value={isUnknown ? '' : (mm || '')}
-          onChange={e => update(hour12 || '', e.target.value, period)}
+          value={isUnknown ? '' : min}
+          onChange={e => commit(hour12, e.target.value, period)}
           className={selectClass}
           aria-label="Minute"
         >
           <option value="">Min</option>
-          {minutes.map(m => <option key={m} value={m}>{m}</option>)}
+          {minutes.map(mm => <option key={mm} value={mm}>{mm}</option>)}
         </select>
         <select
-          value={isUnknown ? '' : period}
-          onChange={e => update(hour12 || '', mm || '', e.target.value as 'AM' | 'PM')}
+          value={isUnknown ? 'AM' : period}
+          onChange={e => commit(hour12, min, e.target.value as 'AM' | 'PM')}
           className={selectClass}
           aria-label="AM or PM"
         >
